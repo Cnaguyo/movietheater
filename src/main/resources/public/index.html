@@ -1,0 +1,124 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+	<title>My Page</title> 
+	<meta name="viewport" content="width=device-width, initial-scale=1"> 
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.1/jquery.mobile-1.2.1.min.css" />
+	<script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.2.1/jquery.mobile-1.2.1.min.js"></script>
+	<script>
+	    api = "http://localhost:8080/api/movie/";
+
+        function getMovies(){
+
+            $('#error').empty();
+
+            $.getJSON(api + "all", function(data){
+                var output = '';
+
+                $.each(data, function(index, value){
+                    output += '<li data-animal-prey-id="' + value.id + '"><a onclick="toggleMovieWatched(' + value.id + ');">';
+
+                    if(value.watched == true){
+                        output += 'WATCHED - ';
+                    }
+
+                    output += ''+ value.title +'</a><a onclick="deleteMovie(' + value.id + ');">Delete</a></li>';
+                });
+                $('#listview').empty().append(output).listview('refresh');
+            });
+        }
+
+        function saveMovie(){
+
+            $('#error').empty();
+
+            var title = $('#movieTitle').val();
+
+            if(title == null || title == ""){
+                $('#error').empty().append("Title cannot be empty!");
+                throw "NoTitle";
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: api,
+                data: JSON.stringify({
+                    title : title
+                }),
+                success: function(data) {
+
+                 },
+                contentType: "application/json",
+                dataType: 'json'
+            });
+            getMovies();
+
+            $('[data-role=dialog]').dialog("close");
+        }
+
+        function cancelMovie(){
+            $('[data-role=dialog]').dialog("close");
+        }
+
+        function deleteMovie(id){
+
+            $.ajax({
+                type: 'DELETE',
+                url: api + "delete/" + id,
+                success: function(data) { getMovies(); }
+            });
+        }
+
+        function toggleMovieWatched(id){
+
+            $.ajax({
+                type: 'PUT',
+                url: api + "watched/" + id,
+                success: function(data) { getMovies(); }
+            });
+        }
+
+        function openDialog(){
+            $('#error').empty();
+            $('#movieTitle').val("");
+        }
+    </script>
+</head> 
+<body onload="getMovies();">
+
+<div data-role="page" id="mainpage">
+
+	<div data-role="header">
+		<h1>My Title</h1>
+	</div><!-- /header -->
+
+	<div data-role="content">
+        <a href="#popup" data-role="button" onclick="openDialog();" data-rel="dialog" data-transition="flip">Add Movie</a>
+		<p>Movies in the database</p>
+        <div>
+		    <ul data-role="listview" data-inset="true" data-filter="true" data-split-theme="b"  data-split-icon="delete" id="listview"></ul>
+        </div>
+	</div><!-- /content -->
+
+</div><!-- /mainpage -->
+
+<!-- New Movie Popup -->
+<div data-role="dialog" id="popup">
+
+    <div data-role="header" data-theme="e">
+        <h1>Add Movie</h1>
+    </div><!-- /header -->
+
+    <div data-role="content" data-theme="d">
+        <p style="color: red;" id="error"></p>
+        <label for="movieTitle">Movie Title</label>
+        <input type="text" data-clear-btn="true" name="movieTitle" id="movieTitle" value="">
+        <p><a onclick="saveMovie();" data-role="button" data-icon="save">Save Movie</a></p>
+        <p><a onclick="cancelMovies();" data-role="button" data-icon="back">Cancel</a></p>
+    </div><!-- /content -->
+
+</div><!-- /page popup -->
+
+</body>
+</html>
